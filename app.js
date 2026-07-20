@@ -10,7 +10,7 @@
       +'<div class="card" id="list"></div>';
     document.getElementById('list').innerHTML=s.notes.slice().reverse().slice(0,12).map(function(x){
       return '<div style="padding:8px 0;border-bottom:1px solid #2a2438"><b>'+x.t+'</b><div class="sub">'+new Date(x.ts).toLocaleString()+'</div><div>'+x.n+'</div></div>';
-    }).join('')||'<span class="sub">메모 없음</span>';
+    }).join('')||'<span class="sub">메모 없음 — 티커부터 적어봐</span>';
     if(!document.getElementById('shareNotes')){
       var b=document.createElement('button');b.id='shareNotes';b.style.cssText='width:100%;margin-top:8px;padding:11px;border:0;border-radius:10px;background:#1c1826;color:#ece8f1';
       b.textContent='메모 요약 복사';b.onclick=function(){var text=s.notes.slice(0,5).map(function(x){return x.t+': '+x.n}).join(' | ')||'empty';
