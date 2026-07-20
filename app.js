@@ -1,4 +1,7 @@
 
+
+/* LEGION_WAVE_37_session_counter */
+try{if(!sessionStorage.getItem('lw_p42_etf_flow_session_counter')){sessionStorage.setItem('lw_p42_etf_flow_session_counter','1');localStorage.setItem('lw_p42_etf_flow_session_counter',String((+(localStorage.getItem('lw_p42_etf_flow_session_counter')||0))+1));}}catch(e){}
 (function(){
   var K='etf_v1';
   var FLOW_SAMPLE=[{t:'QQQ',f:'+1.2B'},{t:'SPY',f:'+800M'},{t:'IWM',f:'-120M'},{t:'EEM',f:'+90M'}];
