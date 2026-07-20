@@ -11,6 +11,12 @@
     document.getElementById('list').innerHTML=s.notes.slice().reverse().slice(0,12).map(function(x){
       return '<div style="padding:8px 0;border-bottom:1px solid #2a2438"><b>'+x.t+'</b><div class="sub">'+new Date(x.ts).toLocaleString()+'</div><div>'+x.n+'</div></div>';
     }).join('')||'<span class="sub">메모 없음</span>';
+    if(!document.getElementById('shareNotes')){
+      var b=document.createElement('button');b.id='shareNotes';b.style.cssText='width:100%;margin-top:8px;padding:11px;border:0;border-radius:10px;background:#1c1826;color:#ece8f1';
+      b.textContent='메모 요약 복사';b.onclick=function(){var text=s.notes.slice(0,5).map(function(x){return x.t+': '+x.n}).join(' | ')||'empty';
+        text+=' · https://hosuman08-netizen.github.io/etf-flow/'; if(navigator.clipboard)navigator.clipboard.writeText(text);try{legionTrack('share_peak',{})}catch(e){}};
+      root.appendChild(b);
+    }
     document.getElementById('add').onclick=function(){
       s.notes.push({t:document.getElementById('t').value||'ETF',n:document.getElementById('n').value||'',ts:Date.now()});
       save(s);render();try{legionTrack('activate',{})}catch(e){}
