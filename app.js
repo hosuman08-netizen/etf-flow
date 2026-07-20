@@ -25,13 +25,27 @@
     }catch(e){return {count:0};}
   }
   var s=load(); var root=document.getElementById('app');
+  function weekNotes(){
+    var cut=Date.now()-7*864e5;
+    return (s.notes||[]).filter(function(x){return (x.ts||0)>=cut;}).length;
+  }
   function render(){
-    var flowHtml=FLOW_SAMPLE.map(function(x){return '<span class="chip">'+x.t+' '+x.f+'</span>';}).join(' ');
+    // seed day-variation on sample (still fictional/edu)
+    var day=new Date().getDate();
+    var flow=FLOW_SAMPLE.map(function(x,i){
+      var sign=(i+day)%3===0?'-':'+';
+      var n=Math.abs(80+((day*17+i*31)%900));
+      var unit=n>500?'B':'M';
+      var v=unit==='B'?(n/100).toFixed(1)+'B':n+'M';
+      return {t:x.t,f:sign+v};
+    });
+    var flowHtml=flow.map(function(x){return '<span class="chip" data-tk="'+x.t+'" style="cursor:pointer">'+x.t+' '+x.f+'</span>';}).join(' ');
     var st=JSON.parse(localStorage.getItem('etf_streak')||'{}');
     var sc=st.count||0;
     var ready=!st.shieldLast||((new Date(dayKey(0))-new Date(st.shieldLast))/86400000)>=7;
-    root.innerHTML='<div class="card"><div class="sub">교육용 샘플 플로우(가상) · 메모 '+(s.notes||[]).length+'건</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">'+flowHtml+'</div></div>'+'<div class="card" style="font-size:12px;color:#67e8f9">교육용 메모. 매수 추천 아님 · 투명 금융</div>'
-      +'<div class="card"><span class="chip">🔥 '+sc+'일'+(sc>=3&&ready?' · 🛡️':'')+'</span></div>'
+    var wn=weekNotes();
+    root.innerHTML='<div class="card"><div class="sub">교육용 샘플 플로우(가상·일별 시드) · 메모 '+(s.notes||[]).length+'건 · 7일 '+wn+'</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">'+flowHtml+'</div></div>'+'<div class="card" style="font-size:12px;color:#67e8f9">교육용 메모. 매수 추천 아님 · 투명 금융</div>'
+      +'<div class="card"><span class="chip">🔥 '+sc+'일'+(sc>=3&&ready?' · 🛡️':'')+'</span> <span class="chip">7일 메모 <b>'+wn+'</b></span></div>'
       +'<div class="card"><input id="t" placeholder="티커 예: QQQ"/><textarea id="n" rows="3" placeholder="오늘 관찰 (유출입, 뉴스…)"></textarea><button id="add">메모 추가</button></div>'
       +'<div class="card" id="list"></div>'
       +'<div class="card" id="moneyPipe" style="text-align:center;font-size:12px">'
@@ -45,10 +59,17 @@
       var es=document.getElementById('emptySample');
       if(es) es.onclick=function(){s.notes.push({t:'QQQ',n:'교육용 샘플 메모',ts:Date.now()});save(s);bumpStreak();render();try{legionTrack('activate',{sample:1})}catch(e){}};
     }else{
-      document.getElementById('list').innerHTML=s.notes.slice().reverse().slice(0,12).map(function(x){
-        return '<div style="padding:8px 0;border-bottom:1px solid #2a2438"><b>'+x.t+'</b><div class="sub">'+new Date(x.ts).toLocaleString()+'</div><div>'+x.n+'</div></div>';
+      document.getElementById('list').innerHTML=s.notes.slice().reverse().slice(0,12).map(function(x,idx){
+        var real=s.notes.length-1-idx;
+        return '<div style="padding:8px 0;border-bottom:1px solid #2a2438"><b>'+x.t+'</b> <button class="sec" data-del="'+real+'" style="float:right;padding:4px 8px;font-size:11px">삭제</button><div class="sub">'+new Date(x.ts).toLocaleString()+'</div><div>'+x.n+'</div></div>';
       }).join('');
+      Array.prototype.forEach.call(document.querySelectorAll('[data-del]'),function(b){
+        b.onclick=function(){s.notes.splice(+b.getAttribute('data-del'),1);save(s);render();};
+      });
     }
+    Array.prototype.forEach.call(document.querySelectorAll('[data-tk]'),function(ch){
+      ch.onclick=function(){document.getElementById('t').value=ch.getAttribute('data-tk');document.getElementById('n').focus();};
+    });
     document.getElementById('shareNotes').onclick=function(){
       var text=s.notes.slice(0,5).map(function(x){return x.t+': '+x.n}).join(' | ')||'empty';
       text+='\n'+shareUrl()+'\n교육용 · 매수추천 아님';
