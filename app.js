@@ -109,3 +109,5 @@ try{if(!sessionStorage.getItem('lw_p42_etf_flow_session_counter')){sessionStorag
   try{legionTrack('session_start',{})}catch(e){}
   render();
 })();
+
+/* LEGION_WAVE_82_wave_stamp */ /* ship wave 82 2026-07-21T07:44:03 */
