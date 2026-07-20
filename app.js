@@ -1,6 +1,7 @@
 
 (function(){
   var K='etf_v1';
+  var FLOW_SAMPLE=[{t:'QQQ',f:'+1.2B'},{t:'SPY',f:'+800M'},{t:'IWM',f:'-120M'},{t:'EEM',f:'+90M'}];
   var SHARE_BASE='https://hosuman08-netizen.github.io/etf-flow/';
   function load(){try{return JSON.parse(localStorage.getItem(K)||'{"notes":[]}');}catch(e){return{notes:[]};}}
   function save(s){localStorage.setItem(K,JSON.stringify(s));}
@@ -25,10 +26,11 @@
   }
   var s=load(); var root=document.getElementById('app');
   function render(){
+    var flowHtml=FLOW_SAMPLE.map(function(x){return '<span class="chip">'+x.t+' '+x.f+'</span>';}).join(' ');
     var st=JSON.parse(localStorage.getItem('etf_streak')||'{}');
     var sc=st.count||0;
     var ready=!st.shieldLast||((new Date(dayKey(0))-new Date(st.shieldLast))/86400000)>=7;
-    root.innerHTML='<div class="card" style="font-size:12px;color:#67e8f9">교육용 메모. 매수 추천 아님 · 투명 금융</div>'
+    root.innerHTML='<div class="card"><div class="sub">교육용 샘플 플로우(가상)</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">'+flowHtml+'</div></div>'+'<div class="card" style="font-size:12px;color:#67e8f9">교육용 메모. 매수 추천 아님 · 투명 금융</div>'
       +'<div class="card"><span class="chip">🔥 '+sc+'일'+(sc>=3&&ready?' · 🛡️':'')+'</span></div>'
       +'<div class="card"><input id="t" placeholder="티커 예: QQQ"/><textarea id="n" rows="3" placeholder="오늘 관찰 (유출입, 뉴스…)"></textarea><button id="add">메모 추가</button></div>'
       +'<div class="card" id="list"></div>'
