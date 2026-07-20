@@ -3,3 +3,6 @@
 - Money: 프리미엄
 - Pitch: ETF 유입/관심 메모 보드 (교육 대시, 매수 권유 아님).
 - NOT investment advice · no AUM claims · no guaranteed returns · 18+ tools ok
+
+## LEARNED 2026-07-21 parallel
+- PWA sw shell · always-learning stamp · fleet parallel wave
