@@ -28,6 +28,16 @@ try{if(!sessionStorage.getItem('lw_p42_etf_flow_session_counter')){sessionStorag
     }catch(e){return {count:0};}
   }
   var s=load(); var root=document.getElementById('app');
+  function weekNoteBars(){
+    var out=[];
+    for(var i=6;i>=0;i--){
+      var d=new Date(); d.setDate(d.getDate()-i); d.setHours(0,0,0,0);
+      var n0=d.getTime(), n1=n0+864e5;
+      var c=(s.notes||[]).filter(function(x){return (x.ts||0)>=n0 && (x.ts||0)<n1;}).length;
+      out.push(c);
+    }
+    return out;
+  }
   function weekNotes(){
     var cut=Date.now()-7*864e5;
     return (s.notes||[]).filter(function(x){return (x.ts||0)>=cut;}).length;
@@ -61,13 +71,18 @@ try{if(!sessionStorage.getItem('lw_p42_etf_flow_session_counter')){sessionStorag
       +'<div class="card"><span class="chip">🔥 '+sc+'일'+(sc>=3&&ready?' · 🛡️':'')+'</span> <span class="chip">오늘 <b>'+tn+'</b></span> <span class="chip">7일 메모 <b>'+wn+'</b></span></div>'
       +'<div class="card"><input id="t" placeholder="티커 예: QQQ"/><textarea id="n" rows="3" placeholder="오늘 관찰 (유출입, 뉴스…)"></textarea>'
       +'<div class="row" style="margin-top:6px"><button id="add">메모 추가</button><button class="sec" id="pinTk">★ 티커 핀</button></div></div>'
-      +'<div class="card" id="list"></div>'
+      +'<div class="card"><b>7일 메모</b><div id="etfSpark" style="display:flex;align-items:flex-end;gap:3px;height:32px;margin-top:8px"></div></div>'+'<div class="card" id="list"></div>'
       +'<div class="card" id="moneyPipe" style="text-align:center;font-size:12px">'
       +'<div style="color:#67e8f9;font-weight:700;margin-bottom:6px">💎 투명 금융 크로스</div>'
       +'<a style="color:#ece8f1;margin:0 6px" href="https://hosuman08-netizen.github.io/cost-basis/?utm_source=etf&utm_medium=pipe">🧮 Cost Basis</a>'
       +'<a style="color:#ece8f1;margin:0 6px" href="https://hosuman08-netizen.github.io/fund-card/?utm_source=etf&utm_medium=pipe">📋 Fund Card</a>'
       +'<a style="color:#e0b552;margin:0 6px" href="https://hosuman08-netizen.github.io/legion-hub/?utm_source=etf&utm_medium=pipe">🎮 Arcade</a></div>'
       +'<button id="shareNotes" style="width:100%;margin-top:8px;padding:11px;border:0;border-radius:10px;background:#1c1826;color:#ece8f1">메모 요약 공유</button>';
+    var es=document.getElementById('etfSpark');
+    if(es){
+      var wb=weekNoteBars(); var mx=Math.max.apply(null,wb.concat([1]));
+      es.innerHTML=wb.map(function(n){var h=Math.max(3,Math.round(n/mx*28));return '<div style="flex:1;height:'+h+'px;background:'+(n>0?'#67e8f9':'#2a2438')+';border-radius:2px"></div>';}).join('');
+    }
     if(!s.notes.length){
       document.getElementById('list').innerHTML='<span class="sub">메모 없음 — 티커부터 적어봐<br><button id="emptySample" style="margin-top:8px">예시 QQQ 관찰</button></span>';
       var es=document.getElementById('emptySample');
@@ -100,6 +115,8 @@ try{if(!sessionStorage.getItem('lw_p42_etf_flow_session_counter')){sessionStorag
       else if(navigator.clipboard)navigator.clipboard.writeText(text);
       try{legionTrack('share_peak',{})}catch(e){}
     };
+    var un=document.getElementById('undoNote');
+    if(un) un.onclick=function(){if(!s.notes.length)return;s.notes.pop();save(s);render();try{legionTrack('undo',{})}catch(e){}};
     document.getElementById('add').onclick=function(){
       s.notes.push({t:document.getElementById('t').value||'ETF',n:document.getElementById('n').value||'',ts:Date.now()});
       save(s);bumpStreak();render();try{legionTrack('activate',{})}catch(e){} try{legionTrack('money_pipe_shown',{app:'etf'})}catch(e){}
