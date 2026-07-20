@@ -48,6 +48,11 @@ try{if(!sessionStorage.getItem('lw_p42_etf_flow_session_counter')){sessionStorag
   }
   function favs(){try{return JSON.parse(localStorage.getItem('etf_favs')||'[]');}catch(e){return[];}}
   function saveFavs(f){try{localStorage.setItem('etf_favs',JSON.stringify(f.slice(0,8)));}catch(e){}}
+  function topTickers(){
+    var m={};
+    (s.notes||[]).forEach(function(x){var t=(x.t||'ETF').toUpperCase(); m[t]=(m[t]||0)+1;});
+    return Object.keys(m).map(function(k){return{t:k,n:m[k]};}).sort(function(a,b){return b.n-a.n;}).slice(0,5);
+  }
   function render(){
     // seed day-variation on sample (still fictional/edu)
     var day=new Date().getDate();
@@ -64,13 +69,18 @@ try{if(!sessionStorage.getItem('lw_p42_etf_flow_session_counter')){sessionStorag
     var ready=!st.shieldLast||((new Date(dayKey(0))-new Date(st.shieldLast))/86400000)>=7;
     var wn=weekNotes();
     var tn=todayNotes();
+    var ydn=(function(){var d=new Date();d.setDate(d.getDate()-1);d.setHours(0,0,0,0);var n0=d.getTime(),n1=n0+864e5;return (s.notes||[]).filter(function(x){return (x.ts||0)>=n0&&(x.ts||0)<n1;}).length;})();
+    var goal=2, gPct=Math.min(100,Math.round(tn/goal*100));
+    var tops=topTickers();
     var fv=favs();
-    root.innerHTML='<div class="card"><div class="sub">교육용 샘플 플로우(가상·일별 시드) · 메모 '+(s.notes||[]).length+'건 · 오늘 '+tn+' · 7일 '+wn+'</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">'+flowHtml+'</div>'
+    root.innerHTML='<div class="card"><div class="sub">교육용 샘플 플로우(가상·일별 시드) · 메모 '+(s.notes||[]).length+'건 · 오늘 '+tn+'/'+goal+' · 전일 '+(tn-ydn>=0?'+':'')+(tn-ydn)+' · 7일 '+wn+'</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">'+flowHtml+'</div>'
+      +(tops.length?'<div class="sub" style="margin-top:8px">TOP 티커: '+tops.map(function(x){return '<span class="chip" data-tk="'+x.t+'" style="cursor:pointer">'+x.t+' ×'+x.n+'</span>';}).join(' ')+'</div>':'')
       +(fv.length?'<div class="sub" style="margin-top:8px">핀: '+fv.map(function(t){return '<span class="chip" data-fav="'+t+'" style="cursor:pointer">★ '+t+'</span>';}).join(' ')+'</div>':'')
       +'</div>'+'<div class="card" style="font-size:12px;color:#67e8f9">교육용 메모. 매수 추천 아님 · 투명 금융</div>'
-      +'<div class="card"><span class="chip">🔥 '+sc+'일'+(sc>=3&&ready?' · 🛡️':'')+'</span> <span class="chip">오늘 <b>'+tn+'</b></span> <span class="chip">7일 메모 <b>'+wn+'</b></span></div>'
+      +'<div class="card"><span class="chip">🔥 '+sc+'일'+(sc>=3&&ready?' · 🛡️':'')+'</span> <span class="chip">오늘 <b>'+tn+'/'+goal+'</b></span> <span class="chip">7일 메모 <b>'+wn+'</b></span>'
+      +'<div style="height:6px;background:#1c1826;border-radius:4px;margin-top:8px;overflow:hidden"><i style="display:block;height:100%;width:'+gPct+'%;background:#67e8f9"></i></div></div>'
       +'<div class="card"><input id="t" placeholder="티커 예: QQQ"/><textarea id="n" rows="3" placeholder="오늘 관찰 (유출입, 뉴스…)"></textarea>'
-      +'<div class="row" style="margin-top:6px"><button id="add">메모 추가</button><button class="sec" id="pinTk">★ 티커 핀</button></div></div>'
+      +'<div class="row" style="margin-top:6px"><button id="add">메모 추가</button><button class="sec" id="pinTk">★ 티커 핀</button><button class="sec" id="undoNote">↩ 직전</button></div></div>'
       +'<div class="card"><b>7일 메모</b><div id="etfSpark" style="display:flex;align-items:flex-end;gap:3px;height:32px;margin-top:8px"></div></div>'+'<div class="card" id="list"></div>'
       +'<div class="card" id="moneyPipe" style="text-align:center;font-size:12px">'
       +'<div style="color:#67e8f9;font-weight:700;margin-bottom:6px">💎 투명 금융 크로스</div>'
