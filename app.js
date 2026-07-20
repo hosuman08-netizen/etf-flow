@@ -29,6 +29,12 @@
     var cut=Date.now()-7*864e5;
     return (s.notes||[]).filter(function(x){return (x.ts||0)>=cut;}).length;
   }
+  function todayNotes(){
+    var t0=new Date(); t0.setHours(0,0,0,0);
+    return (s.notes||[]).filter(function(x){return (x.ts||0)>=t0.getTime();}).length;
+  }
+  function favs(){try{return JSON.parse(localStorage.getItem('etf_favs')||'[]');}catch(e){return[];}}
+  function saveFavs(f){try{localStorage.setItem('etf_favs',JSON.stringify(f.slice(0,8)));}catch(e){}}
   function render(){
     // seed day-variation on sample (still fictional/edu)
     var day=new Date().getDate();
@@ -44,9 +50,14 @@
     var sc=st.count||0;
     var ready=!st.shieldLast||((new Date(dayKey(0))-new Date(st.shieldLast))/86400000)>=7;
     var wn=weekNotes();
-    root.innerHTML='<div class="card"><div class="sub">교육용 샘플 플로우(가상·일별 시드) · 메모 '+(s.notes||[]).length+'건 · 7일 '+wn+'</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">'+flowHtml+'</div></div>'+'<div class="card" style="font-size:12px;color:#67e8f9">교육용 메모. 매수 추천 아님 · 투명 금융</div>'
-      +'<div class="card"><span class="chip">🔥 '+sc+'일'+(sc>=3&&ready?' · 🛡️':'')+'</span> <span class="chip">7일 메모 <b>'+wn+'</b></span></div>'
-      +'<div class="card"><input id="t" placeholder="티커 예: QQQ"/><textarea id="n" rows="3" placeholder="오늘 관찰 (유출입, 뉴스…)"></textarea><button id="add">메모 추가</button></div>'
+    var tn=todayNotes();
+    var fv=favs();
+    root.innerHTML='<div class="card"><div class="sub">교육용 샘플 플로우(가상·일별 시드) · 메모 '+(s.notes||[]).length+'건 · 오늘 '+tn+' · 7일 '+wn+'</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">'+flowHtml+'</div>'
+      +(fv.length?'<div class="sub" style="margin-top:8px">핀: '+fv.map(function(t){return '<span class="chip" data-fav="'+t+'" style="cursor:pointer">★ '+t+'</span>';}).join(' ')+'</div>':'')
+      +'</div>'+'<div class="card" style="font-size:12px;color:#67e8f9">교육용 메모. 매수 추천 아님 · 투명 금융</div>'
+      +'<div class="card"><span class="chip">🔥 '+sc+'일'+(sc>=3&&ready?' · 🛡️':'')+'</span> <span class="chip">오늘 <b>'+tn+'</b></span> <span class="chip">7일 메모 <b>'+wn+'</b></span></div>'
+      +'<div class="card"><input id="t" placeholder="티커 예: QQQ"/><textarea id="n" rows="3" placeholder="오늘 관찰 (유출입, 뉴스…)"></textarea>'
+      +'<div class="row" style="margin-top:6px"><button id="add">메모 추가</button><button class="sec" id="pinTk">★ 티커 핀</button></div></div>'
       +'<div class="card" id="list"></div>'
       +'<div class="card" id="moneyPipe" style="text-align:center;font-size:12px">'
       +'<div style="color:#67e8f9;font-weight:700;margin-bottom:6px">💎 투명 금융 크로스</div>'
@@ -70,6 +81,15 @@
     Array.prototype.forEach.call(document.querySelectorAll('[data-tk]'),function(ch){
       ch.onclick=function(){document.getElementById('t').value=ch.getAttribute('data-tk');document.getElementById('n').focus();};
     });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-fav]'),function(ch){
+      ch.onclick=function(){document.getElementById('t').value=ch.getAttribute('data-fav');document.getElementById('n').focus();};
+    });
+    document.getElementById('pinTk').onclick=function(){
+      var t=(document.getElementById('t').value||'').trim().toUpperCase();
+      if(!t)return;
+      var f=favs(); if(f.indexOf(t)<0) f.unshift(t); saveFavs(f); render();
+      try{legionTrack('pin',{t:t})}catch(e){}
+    };
     document.getElementById('shareNotes').onclick=function(){
       var text=s.notes.slice(0,5).map(function(x){return x.t+': '+x.n}).join(' | ')||'empty';
       text+='\n'+shareUrl()+'\n교육용 · 매수추천 아님';
